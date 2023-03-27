@@ -1,7 +1,7 @@
-from linebot import LineBotApi, WebhookHandler
+#from linebot import LineBotApi, WebhookHandler
 
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+#from linebot.exceptions import InvalidSignatureError
+#from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 
 from sanic import Sanic
@@ -13,14 +13,14 @@ import json
 
 app = Sanic(__name__)
 ################################################################
-import openai, os
+#import openai, os
 	
-openai.api_key = os.getenv("OPENAI_API_KEY")
-line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET")) 
+#openai.api_key = os.getenv("OPENAI_API_KEY")
+#line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+#handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET")) 
 
 
-	
+'''	
 conversation = []
 
 class ChatGPT:  
@@ -51,11 +51,12 @@ class ChatGPT:
 
         
         return response['choices'][0]['message']['content'].strip()
+	'''
 	
 
 
 
-chatgpt = ChatGPT()
+#chatgpt = ChatGPT()
 
 
 #from sanic import Sanic
@@ -67,7 +68,7 @@ chatgpt = ChatGPT()
 async def handle_request(request):
     return response.text("Hello!")
 
-
+'''
 @app.post("/callback")
 async def callback(request):
     signature = request.headers["X-Line-Signature"]
@@ -91,6 +92,7 @@ def handling_message(event):
         reply_msg = chatgpt.get_response(user_message)
         
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+	'''
 
 
 
