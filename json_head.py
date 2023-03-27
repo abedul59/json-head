@@ -13,7 +13,7 @@ app = Sanic(__name__)
 
 @app.route('/')
 async def handle_request(request):
-    return text("Hello!"
+    return text("Hello!")
 
 
 if __name__ == '__main__':
