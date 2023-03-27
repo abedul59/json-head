@@ -68,6 +68,10 @@ class ChatGPT:
 async def handle_request(request):
     return response.text("Hello!")
 
+@app.get("/callback")
+async def callback(request):
+    return response.text("Callback!")	
+	
 '''
 @app.post("/callback")
 async def callback(request):
