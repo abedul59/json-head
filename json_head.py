@@ -1,6 +1,6 @@
 
 
-
+from sanic import Request, HTTPException
 from sanic import Sanic
 from sanic import response
 import aiohttp
@@ -58,30 +58,13 @@ class ChatGPT:
 #chatgpt = ChatGPT()
 
 
-from linebot import LineBotApi, WebhookHandler
-#from linebot.exceptions import InvalidSignatureError
+from linebot import LineBotApi, WebhookHandler, WebhookParser
+from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET")) 
+#handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET")) 
+parser = WebhookParser(os.getenv("LINE_CHANNEL_SECRET"))
 
-
-
-
-
-@handler.add(MessageEvent, message=TextMessage)
-def handling_message(event):
-
-    
-    if isinstance(event.message, TextMessage):
-
-        
-        #user_message = event.message.text
-
-
-        reply_msg = event.message.text
-        #chatgpt.get_response(user_message)
-        
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 
 
@@ -89,43 +72,33 @@ def handling_message(event):
 async def handle_request(request):
     return response.text("Hello!")
 
+
+
 @app.post("/callback")
-async def callback(request):
-    signature = request.headers["X-Line-Signature"]
+async def handle_callback(request: Request):
+    signature = request.headers['X-Line-Signature']
+
+    # get request body as text
     body = await request.body()
-    
-    handler.handle(body.decode(), signature)
+    body = body.decode()
 
+    try:
+        events = parser.parse(body, signature)
+    except InvalidSignatureError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
-    return response.text("OK!")	
+    for event in events:
+        if not isinstance(event, MessageEvent):
+            continue
+        if not isinstance(event.message, TextMessage):
+            continue
 
+        await line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=event.message.text)
+        )
 
-'''
-@app.post("/callback")
-async def callback(request):
-    signature = request.headers["X-Line-Signature"]
-    body = await request.body()
-    #try:
-    handler.handle(body.decode(), signature)
-    #except InvalidSignatureError:
-        #raise HTTPException(status_code=400, detail="Missing Parameters")
-    return response.text("OK")
-
-@handler.add(MessageEvent, message=TextMessage)
-def handling_message(event):
-
-    
-    if isinstance(event.message, TextMessage):
-
-        
-        user_message = event.message.text
-
-
-        reply_msg = chatgpt.get_response(user_message)
-        
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
-	'''
-
+    return response.text("OK!") 
 
 
 if __name__ == '__main__':
