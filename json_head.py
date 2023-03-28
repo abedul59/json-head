@@ -4,7 +4,6 @@ from sanic.exceptions import SanicException
 from sanic import Sanic
 from sanic import response
 import logging
-import azure.functions as func
 from linebot import WebhookParser
 from linebot.models import TextMessage
 from aiolinebot import AioLineBotApi
