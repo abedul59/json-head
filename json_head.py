@@ -1,3 +1,6 @@
+
+
+
 from sanic import Sanic
 from sanic import response
 import aiohttp
@@ -6,69 +9,126 @@ import re
 import json
 
 app = Sanic(__name__)
-
-INDEX = """<!DOCTYPE html>
-<title>json-head</title>
-<h1>json-head</h1>
-<p>JSON (and JSON-P) API for running HEAD requests against one or more URLs.
-<ul>
-    <li><a href="/?url=http://www.google.com/">/?url=http://www.google.com/</a>
-    <li><a href="/?url=http://www.yahoo.com/&amp;callback=foo">/?url=http://www.yahoo.com/&amp;callback=foo</a>
-    <li><a href="/?url=https://www.google.com/&amp;url=http://www.yahoo.com/">/?url=https://www.google.com/&amp;url=http://www.yahoo.com/</a>
-</ul>
-<p>Background: <a href="https://simonwillison.net/2017/Oct/14/async-python-sanic-now/">Deploying an asynchronous Python microservice with Sanic and Zeit Now</a></p>
-<p>Source code: <a href="https://github.com/simonw/json-head">github.com/simonw/json-head</a></p>
-"""
-
-callback_re = re.compile(r'^[a-zA-Z_](\.?[a-zA-Z0-9_]+)+$')
-is_valid_callback = callback_re.match
+################################################################
+#import openai, os
+	
+#openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-async def head(session, url):
-    try:
-        async with session.head(url) as response:
-            return {
-                'ok': True,
-                'headers': dict(response.headers),
-                'status': response.status,
-                'url': url,
-            }
-    except Exception as e:
-        return {
-            'ok': False,
-            'error': str(e),
-            'url': url,
-        }
+
+
+
+
+'''	
+conversation = []
+
+class ChatGPT:  
+    
+
+    def __init__(self):
+        
+        self.messages = conversation
+        self.model = os.getenv("OPENAI_MODEL", default = "gpt-3.5-turbo")
+
+
+
+    def get_response(self, user_input):
+        conversation.append({"role": "user", "content": user_input})
+        
+
+        response = openai.ChatCompletion.create(
+	            model=self.model,
+                messages = self.messages
+
+                )
+
+        conversation.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
+        
+        print("AI回答內容：")        
+        print(response['choices'][0]['message']['content'].strip())
+
+
+        
+        return response['choices'][0]['message']['content'].strip()
+	'''
+	
+
+
+
+#chatgpt = ChatGPT()
+
+
+from linebot import LineBotApi, WebhookHandler
+#from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
+line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET")) 
+
+
+
+
+
+@handler.add(MessageEvent, message=TextMessage)
+def handling_message(event):
+
+    
+    if isinstance(event.message, TextMessage):
+
+        
+        #user_message = event.message.text
+
+
+        reply_msg = event.message.text
+        #chatgpt.get_response(user_message)
+        
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+
 
 
 @app.route('/')
 async def handle_request(request):
-    urls = request.args.getlist('url')
-    callback = request.args.get('callback')
-    if urls:
-        if len(urls) > 10:
-            return response.json([{
-                'ok': False,
-                'error': 'Max 10 URLs allowed'
-            }], status=400)
-        async with aiohttp.ClientSession() as session:
-            head_infos = await asyncio.gather(*[
-                head(session, url) for url in urls
-            ])
-            if callback and is_valid_callback(callback):
-                return response.text(
-                    '{}({})'.format(callback, json.dumps(head_infos, indent=2)),
-                    content_type='application/javascript',
-                    headers={'Access-Control-Allow-Origin': '*'},
-                )
-            else:
-                return response.json(
-                    head_infos,
-                    headers={'Access-Control-Allow-Origin': '*'},
-                )
-    else:
-        return response.html(INDEX)
+    return response.text("Hello!")
+
+@app.post("/callback")
+async def callback(request):
+    signature = request.headers["X-Line-Signature"]
+    body = await request.body()
+    
+    handler.handle(body.decode(), signature)
+
+
+    return response.text("OK!")	
+
+
+'''
+@app.post("/callback")
+async def callback(request):
+    signature = request.headers["X-Line-Signature"]
+    body = await request.body()
+    #try:
+    handler.handle(body.decode(), signature)
+    #except InvalidSignatureError:
+        #raise HTTPException(status_code=400, detail="Missing Parameters")
+    return response.text("OK")
+
+@handler.add(MessageEvent, message=TextMessage)
+def handling_message(event):
+
+    
+    if isinstance(event.message, TextMessage):
+
+        
+        user_message = event.message.text
+
+
+        reply_msg = chatgpt.get_response(user_message)
+        
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+	'''
+
 
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8006)
+ 
+ 
