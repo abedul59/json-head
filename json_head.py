@@ -73,11 +73,14 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 
 
-session = aiohttp.ClientSession()
-async_http_client = AiohttpAsyncHttpClient(session)
-line_bot_api = AsyncLineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-parser = WebhookParser(os.getenv("LINE_CHANNEL_SECRET"))
+#session = aiohttp.ClientSession()
+#async_http_client = AiohttpAsyncHttpClient(session)
+#line_bot_api = AsyncLineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+#parser = WebhookParser(os.getenv("LINE_CHANNEL_SECRET"))
 
+from linebotx import LineBotApiAsync, WebhookHandlerAsync
+line_bot_api = LineBotApiAsync(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+handler = WebhookHandlerAsync(os.getenv("LINE_CHANNEL_SECRET"))
 
 @app.route('/')
 async def handle_request(request):
@@ -92,11 +95,13 @@ async def handle_callback(request):
     # get request body as text
     body = await request.body()
     body = body.decode()
+	
 
-    try:
-        events = parser.parse(body, signature)
-    except InvalidSignatureError:
-        raise SanicException("Something went wrong.", status_code=400)
+    #try:
+        #events = parser.parse(body, signature)
+    await events = handler.handle(body, signature)
+    #except InvalidSignatureError:
+        #raise SanicException("Something went wrong.", status_code=400)
 
     for event in events:
         if not isinstance(event, MessageEvent):
