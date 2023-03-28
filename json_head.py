@@ -3,10 +3,11 @@
 from sanic.exceptions import SanicException
 from sanic import Sanic
 from sanic import response
-import aiohttp
-import asyncio
-import re
-import json
+import logging
+import azure.functions as func
+from linebot import WebhookParser
+from linebot.models import TextMessage
+from aiolinebot import AioLineBotApi
 
 app = Sanic(__name__)
 ################################################################
@@ -61,58 +62,39 @@ class ChatGPT:
 from linebot import AsyncLineBotApi, WebhookParser
 from linebot.aiohttp_async_http_client import AiohttpAsyncHttpClient
 
-from linebot import LineBotApi, WebhookHandler, WebhookParser
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+#from linebot import LineBotApi, WebhookHandler, WebhookParser
+#from linebot.exceptions import InvalidSignatureError
+#from linebot.models import MessageEvent, TextMessage, TextSendMessage
+
+
+
+line_bot_api = AioLineBotApi(channel_access_token=os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+parser = WebhookParser(channel_secret=os.getenv("LINE_CHANNEL_SECRET")) 
 
 
 
 
-#line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-#handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET")) 
-
-
-
-#session = aiohttp.ClientSession()
-#async_http_client = AiohttpAsyncHttpClient(session)
-#line_bot_api = AsyncLineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-#parser = WebhookParser(os.getenv("LINE_CHANNEL_SECRET"))
-
-from linebotx import LineBotApiAsync, WebhookHandlerAsync
-line_bot_api = LineBotApiAsync(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-handler = WebhookHandlerAsync(os.getenv("LINE_CHANNEL_SECRET"))
 
 @app.route('/')
 async def handle_request(request):
     return response.text("Hello!")
 
 
-
-
-
-
-
 @app.post("/callback")
 async def handle_callback(request):
-    signature = request.headers['X-Line-Signature']
+    events = parser.parse(
+        req.get_body().decode("utf-8"),
+        req.headers.get("X-Line-Signature", ""))
 
-    # get request body as text
-    body = await request.body()
-    body = body.decode()
-	
+    for ev in events:
+        # reply echo
+        await line_api.reply_message(
+            ev.reply_token,
+            TextMessage(text=f"You said: {ev.message.text}"))
 
-    await handler.handle(body, signature)
+    # 200 response
+    return response.text("OK!")
 
-
-
-    return response.text("OK!") 
-
-
-@handler.add(MessageEvent, message=TextMessage)
-async def handle_message(event):
-    await line_bot_api.reply_message(
-       event.reply_token,
-       TextSendMessage(text=event.message.text))
 
 
 if __name__ == '__main__':
