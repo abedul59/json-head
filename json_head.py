@@ -88,6 +88,10 @@ async def handle_request(request):
 
 
 
+
+
+
+
 @app.post("/callback")
 async def handle_callback(request):
     signature = request.headers['X-Line-Signature']
@@ -99,22 +103,19 @@ async def handle_callback(request):
 
     #try:
         #events = parser.parse(body, signature)
-    await events = handler.handle(body, signature)
+    await handler.handle(body, signature)
     #except InvalidSignatureError:
         #raise SanicException("Something went wrong.", status_code=400)
 
-    for event in events:
-        if not isinstance(event, MessageEvent):
-            continue
-        if not isinstance(event.message, TextMessage):
-            continue
-
-        await line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=event.message.text)
-        )
 
     return response.text("OK!") 
+
+
+@handler.add(MessageEvent, message=TextMessage)
+async def handle_message(event):
+    await line_bot_api.reply_message(
+       event.reply_token,
+       TextSendMessage(text=event.message.text))
 
 
 if __name__ == '__main__':
