@@ -101,11 +101,8 @@ async def handle_callback(request):
     body = body.decode()
 	
 
-    #try:
-        #events = parser.parse(body, signature)
     await handler.handle(body, signature)
-    #except InvalidSignatureError:
-        #raise SanicException("Something went wrong.", status_code=400)
+
 
 
     return response.text("OK!") 
