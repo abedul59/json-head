@@ -1,6 +1,6 @@
 
 
-from sanic import HTTPException
+from sanic.exceptions import SanicException
 from sanic import Sanic
 from sanic import response
 import aiohttp
@@ -86,7 +86,7 @@ async def handle_request(request):
 
 
 @app.post("/callback")
-async def handle_callback(request: Request):
+async def handle_callback(request):
     signature = request.headers['X-Line-Signature']
 
     # get request body as text
@@ -96,7 +96,8 @@ async def handle_callback(request: Request):
     try:
         events = parser.parse(body, signature)
     except InvalidSignatureError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        #raise HTTPException(status_code=400, detail="Invalid signature")
+	raise SanicException("Something went wrong.", status_code=400)
 
     for event in events:
         if not isinstance(event, MessageEvent):
