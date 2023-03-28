@@ -71,10 +71,10 @@ async def handle_request(request):
 async def callback(request):
     signature = request.headers["X-Line-Signature"]
     body = await request.body()
-    handler.handle(body.decode(), signature)
+    #handler.handle(body.decode(), signature)
 	
     return response.text("OK!")	
-
+'''
 @handler.add(MessageEvent, message=TextMessage)
 def handling_message(event):
 
@@ -89,7 +89,7 @@ def handling_message(event):
 #chatgpt.get_response(user_message)
         
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
-'''
+
 @app.post("/callback")
 async def callback(request):
     signature = request.headers["X-Line-Signature"]
