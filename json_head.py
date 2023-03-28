@@ -57,15 +57,26 @@ class ChatGPT:
 
 #chatgpt = ChatGPT()
 
+ 	
+from linebot import AsyncLineBotApi, WebhookParser
+from linebot.aiohttp_async_http_client import AiohttpAsyncHttpClient
 
 from linebot import LineBotApi, WebhookHandler, WebhookParser
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+
+
+
+
+#line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 #handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET")) 
+
+
+
+session = aiohttp.ClientSession()
+async_http_client = AiohttpAsyncHttpClient(session)
+line_bot_api = AsyncLineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 parser = WebhookParser(os.getenv("LINE_CHANNEL_SECRET"))
-
-
 
 
 @app.route('/')
