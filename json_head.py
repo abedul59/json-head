@@ -96,8 +96,7 @@ async def handle_callback(request):
     try:
         events = parser.parse(body, signature)
     except InvalidSignatureError:
-        #raise HTTPException(status_code=400, detail="Invalid signature")
-	raise SanicException("Something went wrong.", status_code=400)
+        raise SanicException("Something went wrong.", status_code=400)
 
     for event in events:
         if not isinstance(event, MessageEvent):
