@@ -1,6 +1,6 @@
 
 
-from sanic import Request, HTTPException
+from sanic import HTTPException
 from sanic import Sanic
 from sanic import response
 import aiohttp
